@@ -1,0 +1,14 @@
+name: "policygpt_dense_llama3_70b"
+description: "PolicyGPT using dense-only retrieval (no BM25), top_k=5."
+app:
+  base_url: "${POLICYGPT_BASE_URL}"
+retrieval:
+  strategy: "dense"
+  top_k: 5
+  overfetch_factor: 1
+  w_dense: 1.0
+  w_bm25: 0.0
+model:
+  name: "llama-3.3-70b-versatile"
+eval:
+  dataset_path: "data/eval_set_policygpt.jsonl"

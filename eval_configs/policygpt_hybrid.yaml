@@ -1,0 +1,14 @@
+name: "policygpt_hybrid_llama3_70b"
+description: "PolicyGPT using hybrid retrieval (BM25 + dense), top_k=5."
+app:
+  base_url: "${POLICYGPT_BASE_URL}"
+retrieval:
+  strategy: "hybrid"
+  top_k: 5
+  overfetch_factor: 3
+  w_dense: 0.7
+  w_bm25: 0.3
+model:
+  name: "llama-3.3-70b-versatile"
+eval:
+  dataset_path: "data/eval_set_policygpt.jsonl"
