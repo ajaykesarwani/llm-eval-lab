@@ -65,7 +65,6 @@ On a PolicyGPT QA eval set (50 questions from real policy documents):
 Hybrid retrieval is more accurate and faithful, with roughly **+120 ms** extra latency per query.  
 These numbers come from the CSVs in `results/`, produced by the eval runs.
 
-> You can rerun the benchmarks and update these numbers as your datasets and configs evolve.
 
 ---
 
@@ -305,8 +304,6 @@ The summarization eval dataset is stored in `data/policy_summaries.csv`, with co
 ---
 
 ## Screenshots
-
-(Add actual screenshots from your running app; these filenames are just references.)
 
 ### Overview
 
