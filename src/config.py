@@ -42,7 +42,7 @@ class RunConfig:
     retrieval: RetrievalConfig
     model: ModelConfig
     eval: EvalConfig
-
+    task_type: str = "qa"
 
 def _expand_env(value: Any) -> Any:
     if isinstance(value, str) and value.startswith("${") and value.endswith("}"):
@@ -78,4 +78,5 @@ def load_run_config(path: str) -> RunConfig:
         ),
         model=ModelConfig(name=cfg["model"]["name"]),
         eval=EvalConfig(dataset_path=cfg["eval"]["dataset_path"]),
+        task_type=cfg.get("task_type", "qa"),
     )

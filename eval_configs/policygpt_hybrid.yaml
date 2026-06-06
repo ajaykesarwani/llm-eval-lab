@@ -12,3 +12,4 @@ model:
   name: "llama-3.3-70b-versatile"
 eval:
   dataset_path: "data/eval_set_policygpt.jsonl"
+task_type: qa

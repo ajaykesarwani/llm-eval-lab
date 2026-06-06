@@ -8,9 +8,13 @@ from openai import OpenAI
 
 from .datasets import EvalExample
 
+import sacrebleu
+from rouge_score import rouge_scorer
+
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
 JUDGE_MODEL = os.getenv("JUDGE_MODEL", "llama-3.3-70b-versatile")
 
+_rouge_scorer = rouge_scorer.RougeScorer(["rougeL"], use_stemmer=True)
 
 _client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
@@ -111,20 +115,74 @@ Model answer:
     return {"faithfulness": faithfulness, "correctness": correctness}
 
 
-def compute_metrics(
-    example: EvalExample,
-    answer: str,
-    retrieved_chunks: List[Dict[str, Any]],
+# def compute_metrics(
+#     example: EvalExample,
+#     answer: str,
+#     retrieved_chunks: List[Dict[str, Any]],
+# ) -> Dict[str, float]:
+#     recall = compute_retrieval_recall(example, retrieved_chunks)
+#     judge_scores = _judge(
+#         question=example.question,
+#         answer=answer,
+#         gold_answer=example.gold_answer,
+#         context_chunks=retrieved_chunks,
+#     )
+#     return {
+#         "recall": recall,
+#         "faithfulness": judge_scores["faithfulness"],
+#         "correctness": judge_scores["correctness"],
+#     }
+
+def compute_metrics(example, answer, retrieved_chunks, task_type: str = "qa"):
+    if task_type == "qa":
+        # QA: we have gold_context_snippet, so compute recall normally
+        recall = compute_retrieval_recall(example, retrieved_chunks)
+
+        judge_scores = _judge(
+            question=example.question,
+            answer=answer,
+            gold_answer=example.gold_answer,
+            context_chunks=retrieved_chunks,
+        )
+        return {
+            "recall": recall,
+            "faithfulness": judge_scores["faithfulness"],
+            "correctness": judge_scores["correctness"],
+        }
+
+    elif task_type == "summarization":
+        # Summarization: SummarizationExample has no gold_context_snippet
+        # For now, just set recall to 0.0 (or 1.0 if you prefer) and focus on BLEU/ROUGE.
+        recall = 0.0
+
+        summ_metrics = compute_summarization_metrics(
+            gold_summary=example.gold_summary,
+            predicted_summary=answer,
+        )
+        return {
+            "recall": recall,
+            "bleu": summ_metrics["bleu"],
+            "rouge_l": summ_metrics["rouge_l"],
+        }
+
+    else:
+        raise ValueError(f"Unknown task_type: {task_type}")
+
+def compute_summarization_metrics(
+    gold_summary: str,
+    predicted_summary: str,
 ) -> Dict[str, float]:
-    recall = compute_retrieval_recall(example, retrieved_chunks)
-    judge_scores = _judge(
-        question=example.question,
-        answer=answer,
-        gold_answer=example.gold_answer,
-        context_chunks=retrieved_chunks,
-    )
+    # BLEU (SacreBLEU expects list-of-predictions and list-of-list-of-refs)
+    bleu_score = sacrebleu.corpus_bleu(
+        [predicted_summary],
+        [[gold_summary]],
+    ).score  # returns 0–100
+
+    # ROUGE-L
+    rouge_scores = _rouge_scorer.score(gold_summary, predicted_summary)
+    rouge_l_f = rouge_scores["rougeL"].fmeasure  # 0–1
+
     return {
-        "recall": recall,
-        "faithfulness": judge_scores["faithfulness"],
-        "correctness": judge_scores["correctness"],
+        "bleu": bleu_score,
+        "rouge_l": rouge_l_f,
     }

@@ -1,5 +1,5 @@
-name: "policygpt_dense_llama3_70b"
-description: "PolicyGPT using dense-only retrieval (no BM25), top_k=5."
+name: "policy_summarization_dense_llama3_70b"
+description: "Policy summarization using dense retrieval."
 app:
   base_url: "${POLICYGPT_BASE_URL}"
 retrieval:
@@ -11,5 +11,5 @@ retrieval:
 model:
   name: "llama-3.3-70b-versatile"
 eval:
-  dataset_path: "data/eval_set_policygpt.jsonl"
-task_type: qa
+  dataset_path: "data/policy_summaries.csv"
+task_type: summarization

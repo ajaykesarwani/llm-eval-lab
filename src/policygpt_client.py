@@ -18,9 +18,10 @@ class PolicyGPTClient:
         top_k: int = 5,
         where: Optional[Dict[str, Any]] = None,
         retrieval_strategy: Optional[str] = None,
-    ) -> Tuple[str, List[Dict[str, Any]], float]:
+    ) -> Tuple[str, List[Dict[str, Any]], float, Dict[str, Any]]:
         """
-        Call the PolicyGPT /query endpoint and return (answer, context_chunks, latency_seconds).
+        Call the PolicyGPT /query endpoint and return
+        (answer, context_chunks, latency_seconds, usage_dict).
         """
         url = f"{self.base_url}/query"
         payload: Dict[str, Any] = {
@@ -38,6 +39,15 @@ class PolicyGPTClient:
 
         resp.raise_for_status()
         data = resp.json()
+
         answer = data.get("answer", "")
         context = data.get("context", [])
-        return answer, context, elapsed
+
+        usage = {
+            "prompt_tokens": data.get("prompt_tokens", 0),
+            "completion_tokens": data.get("completion_tokens", 0),
+            "total_tokens": data.get("total_tokens", 0),
+            "cost_usd": data.get("cost_usd", 0.0),
+        }
+
+        return answer, context, elapsed, usage
